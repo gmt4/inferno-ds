@@ -87,15 +87,16 @@ audiorec(TxSound *snd, int on)
 		intrmask(TIMERAUDIObit, 0);
 		
 		snd->inuse = 0;
-		return nrs;
 	}
+    return nrs;
 }
 
 int
 audioplay(TxSound *snd, int on)
 {
 	SChanReg *schan;
-	
+    USED(on);
+
 	if(!snd || snd->chan > NSChannels)
 		return 0;
 
