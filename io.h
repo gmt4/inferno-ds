@@ -501,10 +501,10 @@ struct UserInfo{
 
 	uchar pad1;		// ???
 
-	Rune name[10];		// user's name in UTF-16 format.
+	uchar name[20];		// user's name in UTF-16 format.
 	ushort namelen;		// length of the user's name in characters.
 
-	Rune msg[26];		// user's message.
+	uchar msg[52];		// user's message.
 	ushort msglen;		// length of the user's message in characters.
 
 	uchar alarmhour;	// alarm clock hour (0-23).
