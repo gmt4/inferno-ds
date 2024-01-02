@@ -207,7 +207,7 @@ TEXT gotolabel(SB), $-4
 	MOVW		0(R0), R13		/* sp */
 	MOVW		4(R0), R14		/* pc */
 	MOVW		$1, R0
-	BX			(R14)
+	RET
 
 TEXT outs(SB), $-4
 	MOVW	4(FP),R1
