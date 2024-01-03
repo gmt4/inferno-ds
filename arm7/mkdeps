@@ -16,18 +16,18 @@ $AWK -v 'conf='$CONF '
 
 	/^[ 	]*$/	{collect=0}
 	/^[	 ]*#/	{next}
-	
+
 	collect {
 		if(match($1, ".+.\\$O")){
-			cfile=$1
-			sub("\\$O", "c", cfile)
-			if(system("test -e " dir"/"cfile) == 0)
-				deps[n++]=dir"/"cfile
+			cfile=dir"/"$1
+			sub("\\$O\\\\", "c", cfile)
+			if(system("test -e "cfile) == 0)
+				deps[n++]=cfile"\\"
 
-			sfile=$1
-			sub("\\$O", "s", sfile)
-			if(system("test -e " dir"/"sfile) == 0)
-				deps[n++]=dir"/"sfile
+			sfile=dir"/"$1
+			sub("\\$O\\\\", "s", sfile)
+			if(system("test -e "sfile) == 0)
+				deps[n++]=sfile"\\"
 		}else{
 			deps[n++]=dir"/"$1
 		}
