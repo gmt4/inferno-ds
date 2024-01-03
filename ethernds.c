@@ -858,9 +858,10 @@ w_option(Ctlr* ctlr, char* buf, long n)
 				if (strcmp(WifiData->aplist[i].ssid, cb->f[1]) == 0)
 					break;
 			}
-			if(i < j)
+			if(i < j){
 				Wifi_ConnectAP(&WifiData->aplist[i], WEPMODE_NONE, ctlr->txkey, (u8*)ctlr->keys[ctlr->txkey].dat);
-            while(Wifi_AssocStatus() != ASSOCSTATUS_AUTHENTICATING);
+				while(Wifi_AssocStatus() != ASSOCSTATUS_AUTHENTICATING);
+			}
 		}
 	}
 	else if(cistrcmp(cb->f[0], "station") == 0){
