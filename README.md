@@ -2,6 +2,7 @@ inferno-ds: Native Inferno Kernel for the Nintendo DS
 
 INTRO
 -----
+
 The port [1] is starting to be usable,
 that means that limbo programs (dis code) runs on Inferno's Dis VM [2].
 
@@ -19,25 +20,28 @@ Still the port is far from finished, so the port is a WIP
 
 USAGE
 -----
-To setup/build your own i$CONF.nds file follow the INSTALL file.
-After build launch the resulting i$CONF.nds file on your DS.
+
+To setup/build your own `i$CONF.nds` file follow the INSTALL file.
+After build launch the resulting `i$CONF.nds` file on your DS.
 
 At boot time it prompts for the source location of the root fs,
 choose your selection using the direction keys on your DS.
-Currently the only usable option is `root from: kernel'
+Currently the only usable option is `root from: kernel`
 after the prompt, a window manager wm(1) instance is started
 to interact/launch/control programs using a menu-like interface.
 
 AUTHORS
 -------
-Noah Evans
-Salva Peiró
-Mechiel Lukkien
+
+- Noah Evans
+- Salva Peiró
+- Mechiel Lukkien
 
 We can be reached through the inferno-ds group [1].
 
 REFERENCES
 ----------
+
 [1] Inferno DS project: http://code.google.com/p/inferno-ds/
 [2] Inferno Operating System: http://code.google.com/p/inferno-os/ 
 [3] gbatek: hardware reference: http://nocash.emubase.de/gbatek.{txt,htm},
