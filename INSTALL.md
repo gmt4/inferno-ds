@@ -4,6 +4,7 @@ INSTALL
 After setting up Inferno [1] (see Inferno's INSTALL for instructions),
 follow this instructions to install the DS port [2]:
 
+```
 % # INFERNO points to the root of the Inferno distribution
 % INFERNO=/usr/inferno
 % cd $INFERNO/os;
@@ -12,13 +13,14 @@ follow this instructions to install the DS port [2]:
 % cp dsinit.b ../init
 % mk
 % ls *.nds
+```
 
 The result of the compilation process is a usable .nds file,
 which is ready to be copied to your flashcard and run.
 
 REQUIREMENTS
 ------------
-The conf file (see $CONF in mkfile) and build process can require files which
+The conf file (see `$CONF` in mkfile) and build process can require files which
 are not in a default Inferno install, these can be found in the root/ directory,
 and should be copied to their corresponding locations.
 
@@ -29,7 +31,7 @@ Bootable images are generated using: ndstool & dsbuild utilities from devkitpro 
 - ndstool: used to build .nds files, for ds flashcards (slot1).
 - dsbuild: used to build .nds.gba files, for gba flashcard (slot2) and a passme.
 
-Place them in your shell's PATH, for example under: $INFERNO/$HOSTTYPE/$ARCH/bin
+Place them in your shell's PATH, for example under: `$INFERNO/$HOSTTYPE/$ARCH/bin`
 which should already be in your PATH as it contains all the tools (compilers, utils)
 used by the Inferno build process.
 
@@ -37,6 +39,6 @@ Please note that this code does not use any nintendo intellectual property.
 
 REFERENCES
 ----------
-[1] Inferno is available from http://code.google.com/p/inferno-os/
-[2] Inferno DS port is available from http://code.google.com/p/inferno-ds/
-[3] Devkitpro is available from http://www.devkitpro.org/
+- [1] Inferno is available from http://code.google.com/p/inferno-os/
+- [2] Inferno DS port is available from http://code.google.com/p/inferno-ds/
+- [3] Devkitpro is available from http://www.devkitpro.org/
