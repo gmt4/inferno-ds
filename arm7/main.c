@@ -96,7 +96,7 @@ fiforecvintr(void*)
 			case F9Sysleds:
 				power = power_read(POWER_CONTROL);
 				power &= ~PM_LED_CONTROL(3);
-		                power |= power & 0xFF;
+				power |= power & 0xFF;
 				power_write(POWER_CONTROL, v);
 				break;
 			case F9Sysrrtc:
@@ -164,7 +164,7 @@ updatetouch(ulong bst)
 	static int xoffset, yoffset;
 	UserInfo *pu=UINFOREG;
 
-	if (!tscinit){
+	if (tscinit++ == 0){
 		/* dummy read to enable the touchpad PENIRQ */
 		touch_read_value(TscgetX, MaxRetry, MaxRange);
 
@@ -172,7 +172,6 @@ updatetouch(ulong bst)
 		yscale = ((pu->adc.ypx2 - pu->adc.ypx1) << 19) / (pu->adc.y2 - pu->adc.y1);
 		xoffset = ((pu->adc.x1 + pu->adc.x2) * xscale  - ((pu->adc.xpx1 + pu->adc.xpx2) << 19))/2;
 		yoffset = ((pu->adc.y1 + pu->adc.y2) * yscale  - ((pu->adc.ypx1 + pu->adc.ypx2) << 19))/2;
-		tscinit=1;
 	}
 
 	if(~bst & 1<<Pdown){
@@ -205,24 +204,24 @@ updatetouch(ulong bst)
 static void
 vblankintr(void*)
 {
-	Wifi_Update();
-
-	/* clear FIFO errors */
-	if (FIFOREG->ctl & Fifoerror)
-		FIFOREG->ctl |= Fifoenable|Fifoerror;
-	
+	static int vblank = 0;
+	if(vblank++ % 4 == 0)
+	{
+		// not much to do
+	}
 	intrclear(VBLANKbit, 0);
 }
 
 static void
 vcountintr(void*)
 {
-	static int hbt = 0;
+	static int vcount = 0;
 	ulong bst, cbst, bup, bdown;
 	static ulong obst = Btnmsk; /* initial button state */
 
 	/* don't send to many input events */
-	if(hbt++ % 2 == 0){
+	if(vcount++ % 4 == 0)
+	{
 		/* check buttons state */
 		bst = KEYREG->in & Btn9msk;
 		bst |= (KEYREG->xy & Btn7msk) << (Xbtn-Xbtn7);
@@ -238,6 +237,12 @@ vcountintr(void*)
 			nbfifoput(F7keydown, bdown);
 		if(bup)
 			nbfifoput(F7keyup, bup);
+
+		Wifi_Update();
+
+		/* clear FIFO errors */
+		if (FIFOREG->ctl & Fifoerror)
+			FIFOREG->ctl |= Fifoenable|Fifoerror;
 	}
 
 	intrclear(VCOUNTbit, 0);
@@ -249,15 +254,17 @@ main(void)
 	INTREG->ime = 0;
 	memset(edata, 0, end-edata); 		/* clear the BSS */
 	read_firmware(0x03FE00, (ulong*)UINFOMEM, sizeof(UserInfo));
-	
+
+	DPRINT("trapinit7...\n");
 	trapinit();
 	intrenable(VBLANKbit, vblankintr, nil, 0);
 	intrenable(VCOUNTbit, vcountintr, nil, 0);
 	FIFOREG->ctl = FifoRirq|Fifoerror|Fifoenable|FifoTflush;
 	intrenable(FRECVbit, fiforecvintr, nil, 0);
 
+	DPRINT("wait7...\n");
 	// keep the ARM7 out of main RAM
 	while (1)
 		swiWaitForVBlank();
-	return 0;
+	//return 0;
 }
