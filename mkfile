@@ -90,8 +90,8 @@ i$CONF.nds: i$CONF arm7/i$CONF
 i$CONF.ds.gba: i$CONF.nds
 	dsbuild $prereq -o $target
 
-i$CONF.SYM: i$CONF arm7/i$CONF
-	$SHELLNAME mksymtab $prereq > $target
+i$CONF.SYM: i$CONF
+	$SHELLNAME arm7/mksymtab $prereq > $target
 
 <../port/portmkfile
 
