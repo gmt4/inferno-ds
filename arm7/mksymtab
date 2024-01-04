@@ -1,6 +1,6 @@
 
 (
-echo ';no$gba symbolic information file'
+echo ";no$gba symbolic information file `basename $PWD`/$*"
 echo 
 echo '00000000  0'
 echo '00000000  .arm'
