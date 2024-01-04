@@ -32,13 +32,10 @@ LIBS=\
 
 CFLAGS=-wFV -I $ROOT/Inferno/arm/include -I $ROOT/include -r
 
-default:V: i$CONF i$CONF.SYM
+default:V: i$CONF
 
 i$CONF: $OFILES
 	$LD -o $target -R4 -T$KTZERO7 -l $OFILES $libs $SYSLIBS
-
-i$CONF.SYM: i$CONF
-	$SHELLNAME mksymtab $prereq > $target
 
 # must be ARM code, even when OBJTYPE=thumb
 trap.t: trap.5
