@@ -10,7 +10,7 @@
 #include "../port/netif.h"
 #include "etherif.h"
 
-static int dbg = 0;
+static int dbg = 1;
 #define DBG if(dbg)
 #define DPRINT	DBG iprint
 
@@ -531,7 +531,13 @@ void Wifi_Init(u32 initflags){
 	nbfifoput(F9TWifi|F9WFinit, (ulong)WifiData);
 
 	// wait for arm7 to be ready
-	while(Wifi_CheckInit()==0) Wifi_Update();
+	while(1)
+	{
+		Wifi_Update();
+		if (Wifi_CheckInit()==0)
+			break;
+		DPRINT("wifinit error\n");
+	}
 }
 
 int Wifi_CheckInit(void) {
