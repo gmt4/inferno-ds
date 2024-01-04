@@ -19,7 +19,7 @@ Still the port is far from finished, so the port is a WIP
 
 USAGE
 -----
-To setup/build your own `i$CONF.nds` file follow the INSTALL file.
+To setup/build your own `i$CONF.nds` file follow the INSTALL.md file.
 After build launch the resulting `i$CONF.nds` file on your DS.
 
 At boot time it prompts for the source location of the root fs,
