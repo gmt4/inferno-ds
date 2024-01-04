@@ -2,25 +2,23 @@ inferno-ds: Native Inferno Kernel for the Nintendo DS
 
 INTRO
 -----
-
 The port [1] is starting to be usable,
 that means that limbo programs (dis code) runs on Inferno's Dis VM [2].
 
 Some of the hardware bits [3] that are working are:
-	- both lcd screens (including the touch).
-	- access to spi devices (arm7): touch, rtc, firmware, power, mic, ...
-	- mpu and caches are working.
-	- fifos for processor communication between arm7 and arm9.
-	- audio support (play and record).
-	- sd card storage works with: ior4tf, iompcf.
+- both lcd screens (including the touch).
+- access to spi devices (arm7): touch, rtc, firmware, power, mic, ...
+- mpu and caches are working.
+- fifos for processor communication between arm7 and arm9.
+- audio support (play and record).
+- sd card storage works with: ior4tf, iompcf.
 
 Still the port is far from finished, so the port is a WIP
 (work in progress) thing some of the bits missing are:
-	- wifi networking
+- wifi networking
 
 USAGE
 -----
-
 To setup/build your own `i$CONF.nds` file follow the INSTALL file.
 After build launch the resulting `i$CONF.nds` file on your DS.
 
@@ -32,7 +30,6 @@ to interact/launch/control programs using a menu-like interface.
 
 AUTHORS
 -------
-
 - Noah Evans
 - Salva Peiró
 - Mechiel Lukkien
@@ -41,8 +38,7 @@ We can be reached through the inferno-ds group [1].
 
 REFERENCES
 ----------
-
-[1] Inferno DS project: http://code.google.com/p/inferno-ds/
-[2] Inferno Operating System: http://code.google.com/p/inferno-os/ 
-[3] gbatek: hardware reference: http://nocash.emubase.de/gbatek.{txt,htm},
+- [1] Inferno DS project: http://code.google.com/p/inferno-ds/
+- [2] Inferno Operating System: http://code.google.com/p/inferno-os/ 
+- [3] gbatek: hardware reference: http://nocash.emubase.de/gbatek.{txt,htm},
     excellent reference written by Martin Korth with all you need to know about DS programming.
