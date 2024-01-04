@@ -1,6 +1,6 @@
 
 (
-echo ";no$gba symbolic information file `basename $PWD`/$*"
+echo ";no\$gba symbolic information for files: $*"
 echo 
 echo '00000000  0'
 echo '00000000  .arm'
@@ -12,6 +12,7 @@ inm -n $* | sed 's|.*: ||' | sort -f -k 2 | awk \
 			a = "0" a
 		return a
 	}
+
 	{
 		addr=zeropad($1,8)
 		sym=$3
