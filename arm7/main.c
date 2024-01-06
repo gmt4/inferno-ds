@@ -29,13 +29,6 @@ fifoput(ulong cmd, ulong data)
 	FIFOREG->send = (data<<Fcmdlen|cmd);
 }
 
-enum {
-	FWconsoletype =	0x1d,	/* 1 byte */
-	FWds =		0xff,
-	FWdslite =	0x20,
-	FWique =	0x43,
-};
-
 static ulong
 touch_read_temp(void)
 {
@@ -253,7 +246,9 @@ main(void)
 {
 	INTREG->ime = 0;
 	memset(edata, 0, end-edata); 		/* clear the BSS */
-	read_firmware(0x03FE00, (ulong*)UINFOMEM, sizeof(UserInfo));
+
+	read_firmware(0x03FE00, UINFOREG, sizeof(UserInfo));
+	read_firmware(FWconsoletype, &UINFOREG->pad1, sizeof(uchar));
 
 	DPRINT("trapinit7...\n");
 	trapinit();
