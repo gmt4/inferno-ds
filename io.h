@@ -441,6 +441,13 @@ enum
 	Spiena =		1<<15,
 };
 
+enum
+{
+	NDShdrUnitCodeNDS  = 0,
+	NDShdrUnitCodeNDSi = 2,
+	NDShdrUnitCodeDSi  = 3,
+};
+
 /* NDS file header info */
 #define NDSHeader ((NDShdr*)0x027FFE00)
 typedef struct NDShdr NDShdr;
@@ -448,9 +455,9 @@ struct NDShdr{
 	char gtitle[12];
 	char gcode[4];
 	char mcode[2];
-	uchar unitcode;	
-	uchar devtype;		
-	uchar devcapa;
+	uchar unitcode;					// product code. 0=NDS, 2=NDS+DSi, 3=DSi
+	uchar devtype;					// device code. 0 = normal
+	uchar devcapa;					// device size. (1<<n Mbit)
 	uchar rserv1[10];
 	uchar romver;
 	uchar rserv2;
@@ -487,6 +494,16 @@ struct NDShdr{
 	ushort hdrcrc;
 };
 
+enum {
+	FWconsoletype =	0x1d,	/* 1 byte */
+
+	FWds =			0xff,
+	FWdslite =		0x20,
+	FWdsi =			0x57,
+	FWique =		0x43,
+	FWiquelite =	0x63,
+};
+
 /* ram address to save UserInfo aka: user personal data */
 #define UINFOMEM  (0x27FFC80)
 #define UINFOREG ((UserInfo*)UINFOMEM)
@@ -499,7 +516,7 @@ struct UserInfo{
 	uchar birthmonth;	// user's birth month (1-12).
 	uchar birthday;		// user's birth day (1-31).
 
-	uchar pad1;		// ???
+	uchar pad1;		    // ??? (ab-used for FWconsoletype)
 
 	uchar name[20];		// user's name in UTF-16 format.
 	ushort namelen;		// length of the user's name in characters.
