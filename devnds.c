@@ -144,7 +144,7 @@ ndsinit(void)
 			conf.brom = (ulong)p + sizeof("ROMZERO9") - 1;
 	}
 	DPRINT("ndsinit: model %s (%d) unit %d devtype %x/%x hdr %08lx sram %08x rom %08x\n",
-		(UINFOREG->pad1 == FWds ? "DS" : "Non-DS"), UINFOREG->pad1,
+		(UINFOREG->pad1 == FWconsoleds ? "DS" : "Non-DS"), UINFOREG->pad1,
 		dsh->unitcode, dsh->devtype, dsh->devcapa,
 		dsh, conf.bsram, conf.brom);
 }
