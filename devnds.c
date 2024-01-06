@@ -11,7 +11,7 @@
 #include	<memdraw.h>
 #include	"screen.h"
 
-#define	DPRINT if(0)iprint
+#define	DPRINT if(1)iprint
 
 enum {
 	Qdir,
@@ -118,8 +118,10 @@ ndsinit(void)
 	else if (memcmp((void*)NDSHeader->gcode, "INFRME", 6) == 0)
 		dsh = NDSHeader;
 
-	if(dsh == nil)
+	if(dsh == nil){
+		DPRINT("ndsinit: NDShdr not found\n");
 		return;
+	}
 
 	/* check before overriding anyone else's memory */
 	hassram = (memcmp((void*)dsh->rserv5, "PASS", 4) == 0) &&
@@ -132,15 +134,18 @@ ndsinit(void)
 	/* BUG: rom only present on certain slot2 devices */
 	if (0 && dsh == (NDShdr*)ROMZERO){
 		for (p=(ulong*)(ROMZERO+dsh->appeoff); p < (ulong*)(ROMTOP); p++)
+		{
 			if (memcmp(p, "ROMZERO9", 8) == 0)
 				break;
+		}
 
 		conf.brom = ROMTOP;
 		if (p < (ulong*)(ROMTOP - sizeof("ROMZERO9") - 1))
 			conf.brom = (ulong)p + sizeof("ROMZERO9") - 1;
 	}
-	
-	DPRINT("ndsinit: hdr %08lx sram %08x rom %08x\n",
+	DPRINT("ndsinit: model %s (%d) unit %d devtype %x/%x hdr %08lx sram %08x rom %08x\n",
+		(UINFOREG->pad1 == FWds ? "DS" : "Non-DS"), UINFOREG->pad1,
+		dsh->unitcode, dsh->devtype, dsh->devcapa,
 		dsh, conf.bsram, conf.brom);
 }
 
