@@ -496,11 +496,13 @@ struct NDShdr{
 
 enum {
 	FWconsoletype =	0x1d,	/* 1 byte */
+	FWwifimac     = 0x36,
+	FWUserSettings= 0x03FE00,
 
-	FWds =			0xff,
-	FWdslite =		0x20,
-	FWdsi =			0x57,
-	FWique =		0x43,
+	FWconsoleds =			0xff,
+	FWconsoledslite =		0x20,
+	FWconsoledsi =			0x57,
+	FWconsoleique =		0x43,
 	FWiquelite =	0x63,
 };
 
@@ -618,7 +620,7 @@ enum
 	Pdown	=	16,
 	Lclose	= 	17,
 	Maxbtns,
-	Btnmsk	=	((1<<Maxbtns) - 1),
+	Btnmsk	=	0x1f,
 
 	// relative to XKEYS (arm7 only)
 	Xbtn7	= 	0,
