@@ -60,7 +60,7 @@ fiforecvintr(void*)
 			switch(vv&Fcmdsmask){
 			case F9Sysbright:
 				read_firmware(FWconsoletype, ndstype, sizeof ndstype);
-				if(ndstype[0] == FWdslite || ndstype[0] == FWds)
+				if(ndstype[0] == FWconsoledslite || ndstype[0] == FWconsoleds)
 					power_write(POWER_BACKLIGHT, v);
 				break;
 			
@@ -108,7 +108,7 @@ fiforecvintr(void*)
 			switch(vv&Fcmdsmask){
 			case F9WFrmac:
 				// mac is needed early by the arm9 in archds.c:/^archether
-				read_firmware(0x36, (ulong*)v, sizeof(WifiData->MacAddr));
+				read_firmware(FWwifimac, (ulong*)v, sizeof(WifiData->MacAddr));
 				break;
 			case F9WFinit:
 				Wifi_Init(v);
@@ -247,7 +247,7 @@ main(void)
 	INTREG->ime = 0;
 	memset(edata, 0, end-edata); 		/* clear the BSS */
 
-	read_firmware(0x03FE00, UINFOREG, sizeof(UserInfo));
+	read_firmware(FWUserSettings, UINFOREG, sizeof(UserInfo));
 	read_firmware(FWconsoletype, &UINFOREG->pad1, sizeof(uchar));
 
 	DPRINT("trapinit7...\n");
