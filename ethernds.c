@@ -97,8 +97,8 @@ struct Ctlr {
  */
 
 
-Wifi_Data W;
-Wifi_Data* WifiData = (Wifi_Data*)uncached(&W);
+Wifi_Data WifiDataMem;
+Wifi_Data* WifiData = (Wifi_Data*)uncached(&WifiDataMem);
 
 typedef void (*WifiPacketHandler)(int, int);
 typedef void (*WifiSyncHandler)(void);
@@ -525,19 +525,24 @@ int Wifi_AssocStatus(void) {
 }
 
 void Wifi_Init(u32 initflags){
+	int ret;
+
 	memset(WifiData, 0, sizeof(Wifi_Data));
 	dcflushall();
 	WifiData->flags9 = WFLAG_ARM9_ACTIVE | (initflags & WFLAG_ARM9_INITFLAGMASK);
-	nbfifoput(F9TWifi|F9WFinit, (ulong)WifiData);
+
+	ret = nbfifoput(F9TWifi|F9WFinit, (ulong)WifiData);
+	USED(ret);
 
 	// wait for arm7 to be ready
-	while(1)
+	for (int i=0; i < 1048576; i++)
 	{
-		Wifi_Update();
-		if (Wifi_CheckInit()==0)
+		ret = Wifi_CheckInit();
+		if (ret!=0)
 			break;
-		DPRINT("wifinit error\n");
+		Wifi_Update();
 	}
+	//DPRINT("wifiinit ret=%d %x %x\n", ret, (u32)WifiData->flags7, (u32)WifiData->flags9);
 }
 
 int Wifi_CheckInit(void) {
