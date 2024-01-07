@@ -146,7 +146,7 @@ trapinit(void)
 	//wdtcm(0x00000000 | 0x0a);	/* size = 16 KB */
 
 	cp = rcpctl();
-	wcpctl(cp | CpCdtcml);
+	wcpctl(cp | CpCdtcml | CpCitcml );
 	memmove((void*)&Mach0, (void*)&Mach0, DTCMSIZE);
 	dcflush((void*)&Mach0, DTCMSIZE);
 	wcpctl(cp | CpCitcme|CpCdtcme);
