@@ -265,7 +265,7 @@ TEXT wcpctl(SB), $-4
 
 TEXT mpuinit(SB), $-4
 	/* turn the power on for M3 */
-	MOVW	$0x04000304, R0
+	MOVW	$POWER, R0
 	MOVW	$0x8203, R1
 	MOVW	R1, (R0)
 	
