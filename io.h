@@ -452,15 +452,16 @@ enum
 #define NDSHeader ((NDShdr*)0x027FFE00)
 typedef struct NDShdr NDShdr;
 struct NDShdr{
-	char gtitle[12];
-	char gcode[4];
-	char mcode[2];
+	char gtitle[12];                // 12 characters for the game title
+	char gcode[4];                  // 4 characters for the game code
+	char mcode[2];                  // identifies the (commercial) developer
 	uchar unitcode;					// product code. 0=NDS, 2=NDS+DSi, 3=DSi
 	uchar devtype;					// device code. 0 = normal
 	uchar devcapa;					// device size. (1<<n Mbit)
-	uchar rserv1[10];
-	uchar romver;
-	uchar rserv2;
+	uchar rserv1[9];
+	uchar romver;					// version of the ROM
+	uchar flags;					// bit 2: auto-boot flag
+
 	ulong romoff9;
 	ulong entry9;
 	ulong ram9;
@@ -468,10 +469,12 @@ struct NDShdr{
 	ulong romoff7;
 	ulong entry7;
 	ulong ram7;
+
 	ulong fntoff;
 	ulong fntsz;
 	ulong fatoff;
 	ulong fatsz;
+
 	ulong ovloff9;
 	ulong ovlsz9;
 	ulong ovloff7;
@@ -486,6 +489,7 @@ struct NDShdr{
 	ulong magic1;
 	ulong magic2;
 	ulong appeoff;
+
 	ulong romhdrsz;
 	uchar rserv3[24];
 	ulong rserv4[3];
