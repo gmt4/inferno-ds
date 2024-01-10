@@ -163,38 +163,26 @@ kbdinit(void)
 
 static LCDmode lcd256x192x16tft =
 {
-//	.x = 255, .y = 192, .depth = 16, .hz = 60,
-//	.pbs = 2, .dual = 0, .mono = 0, .active = 1,
-//	.hsync_wid = 4-2, .sol_wait = 12-1, .eol_wait = 17-1,
-//	.vsync_hgt = 3-1, .soft_wait = 10, .eof_wait = 1,
-//	.lines_per_int = 0,  .acbias_lines = 0,
-//	.obits = 16,
-//	.vsynclow = 1, .hsynclow = 1,
-	256, 192, 16, 60,
-	2, 0, 0, 1,
-	4-2, 12-1, 17-1,
-	3-1, 10, 1,
-	0, 0, 0,
-	16,
-	1, 1,
+	/*.x =*/ 256, .y = 192, .depth = 16, .hz = 60,
+
+	/*.pbs =*/ 2, .dual = 0, .mono = 0, .active = 1,
+	.hsync_wid = 4-2, .sol_wait = 12-1, .eol_wait = 17-1,
+	.vsync_hgt = 3-1, .sof_wait = 10, .eof_wait = 1,
+	.lines_per_int = 0, .palette_delay = 0, .acbias_lines = 0,
+	.obits = 16,
+	.vsynclow = 1, .hsynclow = 1,
 };
 
 static LCDmode lcd256x384x16tft =
 {
-//	.x = 255, .y = 384, .depth = 16, .hz = 60,
-//	.pbs = 2, .dual = 0, .mono = 0, .active = 1,
-//	.hsync_wid = 4-2, .sol_wait = 12-1, .eol_wait = 17-1,
-//	.vsync_hgt = 3-1, .soft_wait = 10, .eof_wait = 1,
-//	.lines_per_int = 0,  .acbias_lines = 0,
-//	.obits = 16,
-//	.vsynclow = 1, .hsynclow = 1,
-	256, 384, 16, 60,
-	2, 0, 0, 1,
-	4-2, 12-1, 17-1,
-	3-1, 10, 1,
-	0, 0, 0,
-	16,
-	1, 1,
+	/*.x =*/ 256, .y = 2*192, .depth = 16, .hz = 60,
+
+	/*.pbs =*/ 2, .dual = 0, .mono = 0, .active = 1,
+	.hsync_wid = 4-2, .sol_wait = 12-1, .eol_wait = 17-1,
+	.vsync_hgt = 3-1, .sof_wait = 10, .eof_wait = 1,
+	.lines_per_int = 0,  .acbias_lines = 0,
+	.obits = 16,
+	.vsynclow = 1, .hsynclow = 1,
 };
 
 int
