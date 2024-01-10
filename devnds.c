@@ -44,6 +44,7 @@ fiforecv(ulong vv)
 	static uchar mousemod = 0;
 	static Point m, om;
 	int i;
+	ulong px, py, pz;
 
 	v = vv>>Fcmdlen;
 	switch(vv&Fcmdmask) {
@@ -83,15 +84,18 @@ fiforecv(ulong vv)
 			}
 		break;
 	case F7mousedown:
-		DPRINT("mdown %lux %lud %lud %lud %lud\n", v, v&0xff, (v>>8)&0xff, (v>>16)&0xff, mousemod);
-		mousetrack(mousemod, v&0xff, (v>>8)&0xff, 0);
+		px=v&0xff;
+		py=(v>>8)&0xff;
+		pz=(v>>16)&0xff;
+		DPRINT("mdown %lux %lud %lud %lud %lud\n", v, px, py, pz, mousemod);
+		mousetrack(mousemod, px, py, 0);
 		m = mousexy();
 		if(om.x != m.x || om.y != m.y)
 			swcursupdate(om.x, om.y, m.x, m.y);
 		om = m;
 		break;
 	case F7mouseup:
-		mousetrack(0, 0, 0, 1);
+		mousetrack(0, 0, 0, 1);	/* stylus up */
 		break;
 
 	case F7print:
@@ -238,6 +242,8 @@ ndsread(Chan* c, void* a, long n, vlong offset)
 		[LOther] "??",
 	};
 
+	USED(p);
+
 	switch((ulong)c->qid.path){
 	case Qdir:
 		return devdirread(c, a, n, ndstab, nelem(ndstab), devgen);
@@ -269,7 +275,7 @@ ndsread(Chan* c, void* a, long n, vlong offset)
 			"ds type: %x %s\n"
 			"battery: %d %s\n"
 			"temp (%d): %d.%.2d\n",
-			1, (1? "ds" : "ds-lite"), 
+			pu->pad1, (pu->pad1==FWconsoleds ? "ds" : "ds-lite"),
 			0, (0? "low" : "high"),
 			temp, temp>>12, temp & ((1<<13) -1));
 
