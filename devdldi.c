@@ -50,7 +50,7 @@ enum
 typedef struct DLDIhdr DLDIhdr;
 struct DLDIhdr{
 	ulong magic;		/* magic number */
-	char magics[8];	/* magic string */
+	char magics[8];		/* magic string */
 	uchar version;		/* version number */
 	uchar dlogsz;		/* log2 size of driver */
 	uchar sect2fix;		/* sections to fix */
@@ -213,7 +213,7 @@ dldiinit(void)
 	// detect card type using dldi's info
 	for(n = 0; ioifc[n]; n++){
 		DPRINT("ioifc[%d] %.4s\n", n, ioifc[n]->type);
-		if(memcmp(ioifc[n]->type, hdr.io.type, 4))
+		if(memcmp(ioifc[n]->type, hdr.io.type, sizeof(hdr.io.type)))
 			continue;
 		if(ioifc[n]->caps != hdr.io.caps)
 			continue;
