@@ -257,6 +257,8 @@ enum
 	/* lcd sz */
 	Scrwidth	=	256,
 	Scrheight	=	192,
+	Scrdepth	=	 16,
+	Scrfreq		=	 60,
 	Scrsize		= Scrwidth * Scrheight,
 
 	/* lccr */
@@ -458,7 +460,9 @@ struct NDShdr{
 	uchar unitcode;					// product code. 0=NDS, 2=NDS+DSi, 3=DSi
 	uchar devtype;					// device code. 0 = normal
 	uchar devcapa;					// device size. (1<<n Mbit)
-	uchar rserv1[9];
+	uchar rserv1[7];
+	uchar dsi_flags;
+	uchar nds_region;
 	uchar romver;					// version of the ROM
 	uchar flags;					// bit 2: auto-boot flag
 
@@ -479,6 +483,7 @@ struct NDShdr{
 	ulong ovlsz9;
 	ulong ovloff7;
 	ulong ovlsz7;
+
 	ulong romctl1;
 	ulong romctl2;
 	ulong iconoff;
@@ -488,14 +493,20 @@ struct NDShdr{
 	ulong arm7;
 	ulong magic1;
 	ulong magic2;
-	ulong appeoff;
+	ulong romsize;
 
 	ulong romhdrsz;
-	uchar rserv3[24];
+	uchar rserv3[28];
 	ulong rserv4[3];
 	ulong rserv5[1];
 	ushort logocrc;
 	ushort hdrcrc;
+
+	ulong debugromoff;
+	ulong debugromsz;
+	ulong debugramaddr;
+	ulong offset_0x16C;
+	uchar rserv6[0x10];
 };
 
 enum {
