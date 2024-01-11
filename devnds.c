@@ -87,7 +87,7 @@ fiforecv(ulong vv)
 		px=v&0xff;
 		py=(v>>8)&0xff;
 		pz=(v>>16)&0xff;
-		DPRINT("mdown %lux %lud %lud %lud %lud\n", v, px, py, pz, mousemod);
+		DPRINT("mdown %lux %lud %lud %lud %d\n", v, px, py, pz, mousemod);
 		mousetrack(mousemod, px, py, 0);
 		m = mousexy();
 		if(om.x != m.x || om.y != m.y)
@@ -113,8 +113,9 @@ ndsinit(void)
 {
 	NDShdr *dsh;
 	ulong hassram;
-	ulong *p;
-	
+	ulong *p=nil;
+	USED(p);
+
 	dsh = nil;
 	/* look for a valid NDShdr */
 	if (memcmp((void*)((NDShdr*)ROMZERO)->gcode, "INFRME", 6) == 0)
@@ -137,9 +138,11 @@ ndsinit(void)
 		
 	/* BUG: rom only present on certain slot2 devices */
 	if (0 && dsh == (NDShdr*)ROMZERO){
-		for (p=(ulong*)(ROMZERO+dsh->appeoff); p < (ulong*)(ROMTOP); p++)
+		for (p=(ulong*)(ROMZERO+dsh->romsize); p < (ulong*)(ROMTOP); p++)
 		{
-			if (memcmp(p, "ROMZERO9", 8) == 0)
+			if (((ulong)p & BITS(0,18)) == 0)
+				DPRINT("ndsinit: slow rom scan %lux/%ux\n", p, ROMTOP);
+			if ((*p == 0x5A4D4F42) && memcmp(p, "ROMZERO9", 8) == 0)
 				break;
 		}
 
@@ -147,10 +150,10 @@ ndsinit(void)
 		if (p < (ulong*)(ROMTOP - sizeof("ROMZERO9") - 1))
 			conf.brom = (ulong)p + sizeof("ROMZERO9") - 1;
 	}
-	DPRINT("ndsinit: model %s (%d) unit %d devtype %x/%x hdr %08lx sram %08x rom %08x\n",
+	DPRINT("ndsinit: model %s (%d) unit %d devtype %x/%x hdr %08lx sram %lux %08x rom %08x\n",
 		(UINFOREG->pad1 == FWconsoleds ? "DS" : "Non-DS"), UINFOREG->pad1,
 		dsh->unitcode, dsh->devtype, dsh->devcapa,
-		dsh, conf.bsram, conf.brom);
+		dsh, hassram, conf.bsram, conf.brom);
 }
 
 static Chan*
@@ -223,13 +226,14 @@ outl(ulong reg, ulong l)
 static long
 ndsread(Chan* c, void* a, long n, vlong offset)
 {
-	char *tmp, *p, *e;
+	char *tmp, *p=nil, *e;
 	int temp, len;
 	UserInfo *pu = UINFOREG;
 	uchar *pa;
 	uchar b;
 	ushort s;
 	ulong l;
+	USED(p);
 
 	char *langlst[Langmask+1] = {
 		[LJapanese] "ja", 
@@ -241,8 +245,6 @@ ndsread(Chan* c, void* a, long n, vlong offset)
 		[LChinese] "ch",
 		[LOther] "??",
 	};
-
-	USED(p);
 
 	switch((ulong)c->qid.path){
 	case Qdir:
