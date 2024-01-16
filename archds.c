@@ -226,7 +226,7 @@ archether(int ctlno, Ether *ether)
 	ether->irq = IPCSYNCbit;
 	ether->itype = 0;
 	ether->mbps = 2;
-	ether->maxmtu = 2300;
+	ether->maxmtu = ETHERMAXTU;
 
 	IPCREG->ctl |= Ipcirqena;
 	
