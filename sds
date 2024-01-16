@@ -169,6 +169,7 @@ root
 # dhcp
 	/dis/lib/dhcpclient.dis
 	/dis/lib/ip.dis
+	/dis/ip/dhcp.dis
 
 	/n/remote
 	/n/local
