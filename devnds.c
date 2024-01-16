@@ -11,7 +11,7 @@
 #include	<memdraw.h>
 #include	"screen.h"
 
-#define	DPRINT if(1)iprint
+#define	DPRINT if(0)iprint
 
 enum {
 	Qdir,
