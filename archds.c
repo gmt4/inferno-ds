@@ -213,7 +213,7 @@ uartputs(char* s, int n)
 int
 archether(int ctlno, Ether *ether)
 {
-	static char opt[]="dbg=1 station=ds power=on scan=1 essid=default channel=6";
+	static char opt[]="dbg=1 station=ds power=on scan=1 essid=default";
 	sprint(opt, "dbg=1"); // XXX
 
 	if(ctlno > 0)
