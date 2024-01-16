@@ -201,6 +201,12 @@ vblankintr(void*)
 	if(vblank++ % 4 == 0)
 	{
 		// not much to do
+
+		Wifi_Update();
+
+		/* clear FIFO errors */
+		if (FIFOREG->ctl & Fifoerror)
+			FIFOREG->ctl |= Fifoenable|Fifoerror;
 	}
 	intrclear(VBLANKbit, 0);
 }
@@ -213,7 +219,7 @@ vcountintr(void*)
 	static ulong obst = Btnmsk; /* initial button state */
 
 	/* don't send to many input events */
-	if(vcount++ % 4 == 0)
+	if(vcount++ % 8 == 0)
 	{
 		/* check buttons state */
 		bst = KEYREG->in & Btn9msk;
@@ -230,12 +236,6 @@ vcountintr(void*)
 			nbfifoput(F7keydown, bdown);
 		if(bup)
 			nbfifoput(F7keyup, bup);
-
-		Wifi_Update();
-
-		/* clear FIFO errors */
-		if (FIFOREG->ctl & Fifoerror)
-			FIFOREG->ctl |= Fifoenable|Fifoerror;
 	}
 
 	intrclear(VCOUNTbit, 0);
@@ -248,7 +248,8 @@ main(void)
 	memset(edata, 0, end-edata); 		/* clear the BSS */
 
 	read_firmware(FWUserSettings, UINFOREG, sizeof(UserInfo));
-	read_firmware(FWconsoletype, &UINFOREG->pad1, sizeof(uchar));
+	read_firmware(FWconsoletype, &UINFOREG->pad1, sizeof(UINFOREG->pad1));
+	if(WifiData) read_firmware(FWwifimac, &WifiData->MacAddr, sizeof(WifiData->MacAddr));
 
 	DPRINT("trapinit7...\n");
 	trapinit();
