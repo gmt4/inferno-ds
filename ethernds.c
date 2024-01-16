@@ -10,6 +10,8 @@
 #include "../port/netif.h"
 #include "etherif.h"
 
+int Wifi_DisconnectAP(void);
+
 static int dbg = 1;
 #define DBG if(dbg)
 #define DPRINT	DBG iprint
@@ -207,16 +209,20 @@ int Wifi_RawTxFrame(u16 datalen, u16 rate, u16 * data) {
 	Wifi_TxHeader txh;
 	int sizeneeded;
 	int base;
-	sizeneeded=((datalen+12+4+3)/4)*2;
+	sizeneeded=(datalen+12+1)/2;
 	if(sizeneeded>Wifi_TxBufferWordsAvailable()) {WifiData->stats[WSTAT_TXQUEUEDREJECTED]++; return -1; }
+	txh.enable_flags=0;
+	txh.unknown=0;
+	txh.countup=0;
+	txh.beaconfreq=0;
 	txh.tx_rate=rate;
 	txh.tx_length=datalen+4;
 	base = WifiData->txbufOut;
 	Wifi_TxBufferWrite(base,6,(u16 *)&txh);
 	base += 6;
 	if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
-	Wifi_TxBufferWrite(base,((datalen+3)/4)*2,data);
-	base += ((datalen+3)/4)*2;
+	Wifi_TxBufferWrite(base,(datalen+1)/2,data);
+	base += (datalen+1)/2;
 	if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
 	WifiData->txbufOut=base;
 	WifiData->stats[WSTAT_TXQUEUEDPACKETS]++;
@@ -372,9 +378,10 @@ int Wifi_ConnectAP(Wifi_AccessPoint * apdata, int wepmode, int wepkeyid, u8 * we
 	}
 	return 0;
 }
+
 void Wifi_AutoConnect(void) {
 	if(!(WifiData->wfc_enable[0]&0x80)) {
-		wifi_connect_state=ASSOCSTATUS_CANNOTCONNECT;
+		wifi_connect_state=-1;
 	} else {
 		wifi_connect_state=4;
 		WifiData->reqMode=WIFIMODE_SCAN;		
@@ -544,7 +551,6 @@ void Wifi_Init(u32 initflags){
 	}
 	//DPRINT("wifiinit ret=%d %x %x\n", ret, (u32)WifiData->flags7, (u32)WifiData->flags9);
 }
-
 int Wifi_CheckInit(void) {
 	if(!WifiData) return 0;
 	return ((WifiData->flags7 & WFLAG_ARM7_ACTIVE) && (WifiData->flags9 & WFLAG_ARM9_ARM7READY));
@@ -593,7 +599,7 @@ void Wifi_Update(void) {
 				//if(framehdr[6]&0x4000) { // wep enabled (when receiving WEP packets, the IV is stripped for us! how nice :|
 				//	base2+=24; hdrlen=28;  // base2+=[wifi hdr 12byte]+[802 header hdrlen]+[slip hdr 8byte]
 				//} else { 
-				//	base2+=22; hdrlen=24;
+					base2+=22; hdrlen=24;
 				//}
 		  //  SGIP_DEBUG_MESSAGE(("%04X %04X %04X %04X %04X",Wifi_RxReadOffset(base2-8,0),Wifi_RxReadOffset(base2-7,0),Wifi_RxReadOffset(base2-6,0),Wifi_RxReadOffset(base2-5,0),Wifi_RxReadOffset(base2-4,0)));
 				// check for LLC/SLIP header...
@@ -604,7 +610,7 @@ void Wifi_Update(void) {
 					mb = sgIP_memblock_allocHW(14,len-8-hdrlen);
 					if(mb) {
 						if(base2>=(WIFI_RXBUFFER_SIZE/2)) base2-=(WIFI_RXBUFFER_SIZE/2);
-						Wifi_RxRawReadPacket(base2,(len-8-hdrlen)&(~1),((u16 *)mb->datastart)+7);
+						Wifi_RxRawReadPacket(base2,(len-8-hdrlen)&(~1),((u16 *)mb->datastart)+7); // Todo: Improve this to read correctly  in the case that the packet buffer is fragmented
 						if(len&1) ((u8 *)mb->datastart)[len+14-1-8-hdrlen]=Wifi_RxReadOffset(base2,((len-8-hdrlen)/2))&255;
 						Wifi_CopyMacAddr(mb->datastart,framehdr+8); // copy dest
 						if(Wifi_RxReadOffset(base,6)&0x0200) { // from DS set?
@@ -801,8 +807,8 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 		debug[1], debug[2], debug[6], debug[3], debug[4]);
 
 	status = Wifi_AssocStatus();
-	p = seprint(p, e, "mode (0x%ux/0x%ux) auth 0x%ux status (0x%ux) %s\n",
-		WifiData->curMode, WifiData->reqMode, WifiData->authlevel,
+	p = seprint(p, e, "essid %s mode (0x%ux/0x%ux) auth 0x%ux status (0x%ux) %s\n",
+		WifiData->ssid9, WifiData->curMode, WifiData->reqMode, WifiData->authlevel,
 		status, ASSOCSTATUS_STRINGS[status]);	
 
 	ap = WifiData->aplist;
@@ -871,7 +877,7 @@ w_option(Ctlr* ctlr, char* buf, long n)
 			}
 			if(i < j){
 				Wifi_ConnectAP(&WifiData->aplist[i], WEPMODE_NONE, ctlr->txkey, (u8*)ctlr->keys[ctlr->txkey].dat);
-				while(Wifi_AssocStatus() != ASSOCSTATUS_AUTHENTICATING);
+				//while(Wifi_AssocStatus() != ASSOCSTATUS_ASSOCIATED);
 			}
 		}
 	}
