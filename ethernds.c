@@ -112,7 +112,7 @@ WifiSyncHandler synchandler = 0;
 #define SPINLOCK_INUSE	0x0001
 #define SPINLOCK_ERROR	0x0002
 #define Spinlock_Acquire(arg)	SPINLOCK_OK
-#define Spinlock_Release(arg)
+#define Spinlock_Release(arg)	// XXX
 
 void ethhdr_print(char f, void * d) {
 	Etherpkt *p = d;
@@ -328,15 +328,6 @@ int Wifi_FindMatchingAP(int numaps, Wifi_AccessPoint * apdata, Wifi_AccessPoint 
 int wifi_connect_state = 0; // -1==error, 0==searching, 1==associating, 2==dhcp'ing, 3==done, 4=searching wfc data
 Wifi_AccessPoint wifi_connect_point;
 
-int Wifi_DisconnectAP(void) {
-	WifiData->reqMode=WIFIMODE_NORMAL;
-	WifiData->reqReqFlags &= ~WFLAG_REQ_APCONNECT;
-	WifiData->flags9&=~WFLAG_ARM9_NETREADY;
-
-	wifi_connect_state=-1;
-	return 0;
-}
-
 int Wifi_ConnectAP(Wifi_AccessPoint * apdata, int wepmode, int wepkeyid, u8 * wepkey) {
 	int i;
 	Wifi_AccessPoint ap;
@@ -531,6 +522,120 @@ int Wifi_AssocStatus(void) {
 	return ASSOCSTATUS_CANNOTCONNECT;
 }
 
+int Wifi_DisconnectAP(void) {
+	WifiData->reqMode=WIFIMODE_NORMAL;
+	WifiData->reqReqFlags &= ~WFLAG_REQ_APCONNECT;
+	WifiData->flags9&=~WFLAG_ARM9_NETREADY;
+
+	wifi_connect_state=-1;
+	return 0;
+}
+
+/* modified to fit devether.c interface */
+int Wifi_TransmitFunction(Block * b) {
+	// convert ethernet frame into wireless frame and output.
+	// ethernet header: 6byte dest, 6byte src, 2byte protocol_id
+	// assumes individual pbuf len is >=14 bytes, it's pretty likely ;) - also hopes pbuf len is a multiple of 2 :|
+	int base,framelen, hdrlen, writelen;
+	int copytotal, copyexpect;
+	u16 framehdr[6+12+2];
+	Block * t;
+	framelen=BLEN(b)-14+8 + (WifiData->wepmode7?4:0);
+	
+	if(!(WifiData->flags9&WFLAG_ARM9_NETUP)) {
+		DPRINT(("tx:err_netdown\n"));
+		freeb(b);
+		return 0; //?
+	}
+	if(framelen+40>Wifi_TxBufferWordsAvailable()*2) { // error, can't send this much!
+		DPRINT(("tx:err_space\n"));
+		freeb(b);
+		return 0; //?
+	}
+	
+	ethhdr_print('T',b->rp);
+	framehdr[0]=0;
+	framehdr[1]=0;
+	framehdr[2]=0;
+	framehdr[3]=0;
+	framehdr[4]=0; // rate, will be filled in by the arm7.
+	hdrlen=18;
+	framehdr[7]=0;
+
+	if(WifiData->curReqFlags&WFLAG_REQ_APADHOC) { // adhoc mode
+		framehdr[6]=0x0008;
+		Wifi_CopyMacAddr(framehdr+14,WifiData->bssid7);
+		Wifi_CopyMacAddr(framehdr+11,WifiData->MacAddr);
+		Wifi_CopyMacAddr(framehdr+8,((u8 *)b->rp));
+	} else {
+		framehdr[6]=0x0108;
+		Wifi_CopyMacAddr(framehdr+8,WifiData->bssid7);
+		Wifi_CopyMacAddr(framehdr+11,WifiData->MacAddr);
+		Wifi_CopyMacAddr(framehdr+14,((u8 *)b->rp));
+	}
+	if(WifiData->wepmode7)	{ framehdr[6] |=0x4000; hdrlen=20; }
+	framehdr[17] = 0;
+	framehdr[18] = 0; // wep IV, will be filled in if needed on the arm7 side.
+	framehdr[19] = 0;
+
+	framehdr[5]=framelen+hdrlen*2-12+4;
+	copyexpect= ((framelen+hdrlen*2-12+4) +12 -4 +1)/2;
+	copytotal=0;
+
+	WifiData->stats[WSTAT_TXQUEUEDPACKETS]++;
+	WifiData->stats[WSTAT_TXQUEUEDBYTES]+=framelen+hdrlen*2;
+
+	base = WifiData->txbufOut;
+	Wifi_TxBufferWrite(base,hdrlen,framehdr);
+	base += hdrlen;
+	copytotal+=hdrlen;
+	if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
+
+	// add LLC header
+	framehdr[0]=0xAAAA;
+	framehdr[1]=0x0003;
+	framehdr[2]=0x0000;
+	framehdr[3]=((u16 *)b->rp)[6]; // frame type
+
+	Wifi_TxBufferWrite(base,4,framehdr);
+	base += 4;
+	copytotal+=4;
+	if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
+
+	t=b;
+	writelen=(BLEN(b)-14);
+	if(writelen) {
+		Wifi_TxBufferWrite(base,(writelen+1)/2,((u16 *)b->rp)+7);
+		base+=(writelen+1)/2;
+		copytotal+=(writelen+1)/2;
+		if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
+	}
+/*	
+	while(b->next) {
+		b=b->next;
+		writelen=BLEN(b);
+		Wifi_TxBufferWrite(base,(writelen+1)/2,((u16 *)b->rp));
+		base+=(writelen+1)/2;
+		copytotal+=(writelen+1)/2;
+		if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
+	}
+*/
+	if(WifiData->wepmode7) { // add required extra bytes
+		base+=2;
+		copytotal+=2;
+		if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
+	}
+	WifiData->txbufOut=base; // update fifo out pos, done sending packet.
+
+	freeb(t); // free packet, as we're the last stop on this chain.
+
+	if(copytotal!=copyexpect) {
+		DPRINT("Tx exp:%d que:%d\n",copyexpect,copytotal);
+	}
+	if(synchandler) synchandler();
+		return 0;
+}
+
 void Wifi_Init(u32 initflags){
 	int ret;
 
@@ -645,111 +750,6 @@ void Wifi_Update(void) {
 
 		if(cnt++>80) break;
 	}
-}
-
-/* modified to fit devether.c interface */
-int Wifi_TransmitFunction(Block * b) {
-	// convert ethernet frame into wireless frame and output.
-	// ethernet header: 6byte dest, 6byte src, 2byte protocol_id
-	// assumes individual pbuf len is >=14 bytes, it's pretty likely ;) - also hopes pbuf len is a multiple of 2 :|
-	int base,framelen, hdrlen, writelen;
-	int copytotal, copyexpect;
-	u16 framehdr[6+12+2];
-	Block * t;
-	framelen=BLEN(b)-14+8 + (WifiData->wepmode7?4:0);
-	
-	if(!(WifiData->flags9&WFLAG_ARM9_NETUP)) {
-		DPRINT(("tx:err_netdown\n"));
-		freeb(b);
-		return 0; //?
-	}
-	if(framelen+40>Wifi_TxBufferWordsAvailable()*2) { // error, can't send this much!
-		DPRINT(("tx:err_space\n"));
-		freeb(b);
-		return 0; //?
-	}
-	
-	ethhdr_print('T',b->rp);
-	framehdr[0]=0;
-	framehdr[1]=0;
-	framehdr[2]=0;
-	framehdr[3]=0;
-	framehdr[4]=0; // rate, will be filled in by the arm7.
-	hdrlen=18;
-	framehdr[7]=0;
-
-	if(WifiData->curReqFlags&WFLAG_REQ_APADHOC) { // adhoc mode
-		framehdr[6]=0x0008;
-		Wifi_CopyMacAddr(framehdr+14,WifiData->bssid7);
-		Wifi_CopyMacAddr(framehdr+11,WifiData->MacAddr);
-		Wifi_CopyMacAddr(framehdr+8,((u8 *)b->rp));
-	} else {
-		framehdr[6]=0x0108;
-		Wifi_CopyMacAddr(framehdr+8,WifiData->bssid7);
-		Wifi_CopyMacAddr(framehdr+11,WifiData->MacAddr);
-		Wifi_CopyMacAddr(framehdr+14,((u8 *)b->rp));
-	}
-	if(WifiData->wepmode7)	{ framehdr[6] |=0x4000; hdrlen=20; }
-	framehdr[17] = 0;
-	framehdr[18] = 0; // wep IV, will be filled in if needed on the arm7 side.
-	framehdr[19] = 0;
-
-	framehdr[5]=framelen+hdrlen*2-12+4;
-	copyexpect= ((framelen+hdrlen*2-12+4) +12 -4 +1)/2;
-	copytotal=0;
-
-	WifiData->stats[WSTAT_TXQUEUEDPACKETS]++;
-	WifiData->stats[WSTAT_TXQUEUEDBYTES]+=framelen+hdrlen*2;
-
-	base = WifiData->txbufOut;
-	Wifi_TxBufferWrite(base,hdrlen,framehdr);
-	base += hdrlen;
-	copytotal+=hdrlen;
-	if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
-
-	// add LLC header
-	framehdr[0]=0xAAAA;
-	framehdr[1]=0x0003;
-	framehdr[2]=0x0000;
-	framehdr[3]=((u16 *)b->rp)[6]; // frame type
-
-	Wifi_TxBufferWrite(base,4,framehdr);
-	base += 4;
-	copytotal+=4;
-	if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
-
-	t=b;
-	writelen=(BLEN(b)-14);
-	if(writelen) {
-		Wifi_TxBufferWrite(base,(writelen+1)/2,((u16 *)b->rp)+7);
-		base+=(writelen+1)/2;
-		copytotal+=(writelen+1)/2;
-		if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
-	}
-/*	
-	while(b->next) {
-		b=b->next;
-		writelen=BLEN(b);
-		Wifi_TxBufferWrite(base,(writelen+1)/2,((u16 *)b->rp));
-		base+=(writelen+1)/2;
-		copytotal+=(writelen+1)/2;
-		if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
-	}
-*/
-	if(WifiData->wepmode7) { // add required extra bytes
-		base+=2;
-		copytotal+=2;
-		if(base>=(WIFI_TXBUFFER_SIZE/2)) base -= WIFI_TXBUFFER_SIZE/2;
-	}
-	WifiData->txbufOut=base; // update fifo out pos, done sending packet.
-
-	freeb(t); // free packet, as we're the last stop on this chain.
-
-	if(copytotal!=copyexpect) {
-		DPRINT("Tx exp:%d que:%d\n",copyexpect,copytotal);
-	}
-	if(synchandler) synchandler();
-		return 0;
 }
 
 static const char * ASSOCSTATUS_STRINGS[] = {
