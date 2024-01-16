@@ -1,7 +1,7 @@
-/* 
+/*
  * DLDI access to SD/CF storage provided by homebrew hw,
  * written using the dldi.s code from Michael "Chishm".
- * 
+ *
  * use: a dldi patcher completes I/O fns, so we we can r/w,
  * tries to be simplest/sanest way of doing it i could come with.
  *
@@ -37,12 +37,12 @@ Dirtab dlditab[]={
 enum
 {
 	DLDImagic=		0xBF8DA5ED,
-	
+
 	Fixall =		0x01,
 	Fixglue =		0x02,
 	Fixgot =		0x04,
-	Fixbss =		0x08,	
-	
+	Fixbss =		0x08,
+
 	LHDRSZ	= 15,		/* argmax {log2(sizeof(h))}, h is a common DLDIhdr */
 	SECTSZ	= 512		/* Ioifc fns work with SECTSZ sectors */
 };
@@ -56,16 +56,16 @@ struct DLDIhdr{
 	uchar sect2fix;		/* sections to fix */
 	uchar slogsz;		/* log2 size of alloc space */
 	char textid[48];
-	
+
 	ulong sdata, etext;	/* offsets to sections */
 	ulong sglue, eglue;
 	ulong sgot, egot;
 	ulong sbss, ebss;
 
 	struct Ioifc io;		/* here: sizeof(DLDIhdr) = 1<<7 bytes */
-	
+
 	/* sizeof(DLDIhdr) = 1<<LHDRSZ bytes */
-	uchar space[(1<<LHDRSZ) - (1<<7)]; 
+	uchar space[(1<<LHDRSZ) - (1<<7)];
 };
 
 static int
@@ -76,7 +76,7 @@ nulliofunc(void){
 static Ioifc io_none = {
 	.type = "none",
 	.caps = 0,
-	
+
 	nulliofunc,
 	nulliofunc,
 	(void*) nulliofunc,
@@ -94,17 +94,17 @@ DLDIhdr hdr=
 .dlogsz = LHDRSZ,
 .sect2fix = 0,
 .slogsz = LHDRSZ,
-.textid = "no interface found",
-	
+.textid = "none",
+
 .sdata = &hdr, .etext = 0, /* .etext = &hdr + 1<<LHDRSZ */
 .sglue = 0, .eglue = 0,
 .sgot = 0, .egot = 0,
-.sbss = 0, .ebss = 0,	
-	
+.sbss = 0, .ebss = 0,
+
 .io =	{
 	.type = "none",
 	.caps = 0,
-	
+
 	nulliofunc,
 	nulliofunc,
 	(void*) nulliofunc,
@@ -194,8 +194,8 @@ dldiinit(void)
 		DPRINT("bad DLDIhdr start %lux %lux\n", &hdr, &hdr.sdata);
 
 	/*
-	DPRINT("DLDI hdr %lux-%lux sz: %d fix: %s%s%s%s\n",
-		hdr.sdata, hdr.etext, sizeof(hdr),
+	DPRINT("dldiinit id %s hdr %lux-%lux sz: %d fix: %s%s%s%s\n",
+		hdr.textid, hdr.sdata, hdr.etext, sizeof(hdr),
 		(hdr.sect2fix & Fixall)? "all": "",
 		(hdr.sect2fix & Fixglue)? "glue": "",
 		(hdr.sect2fix & Fixgot)? "got": "",
@@ -209,7 +209,7 @@ dldiinit(void)
 
 	if (!hdr.io.caps)
 		return;
-	
+
 	// detect card type using dldi's info
 	for(n = 0; ioifc[n]; n++){
 		DPRINT("ioifc[%d] %.4s\n", n, ioifc[n]->type);
@@ -230,15 +230,14 @@ dldiinit(void)
 		return;
 	}
 
-	DPRINT("dldi: %s\n", hdr.textid);
-	DPRINT("ioifc: %.4s %s%s %s%s (%lux)\n",
-		hdr.io.type, 
+	DPRINT("dldiinit %s ioifc %.4s %s%s %s%s (%lux)\n",
+		hdr.textid, hdr.io.type,
 		(hdr.io.caps & Cslotgba)? "gba" : "",
 		(hdr.io.caps & Cslotnds)? "nds" : "",
 		(hdr.io.caps & Cread)? "r" : "",
 		(hdr.io.caps & Cwrite)? "w" : "",
 		hdr.io.caps);
-		
+
 	// set the default io interface
 	memmove(&hdr.io, ioifc[n], sizeof(Ioifc));
 	mbrpart();
