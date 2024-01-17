@@ -201,12 +201,6 @@ vblankintr(void*)
 	if(vblank++ % 4 == 0)
 	{
 		// not much to do
-
-		Wifi_Update();
-
-		/* clear FIFO errors */
-		if (FIFOREG->ctl & Fifoerror)
-			FIFOREG->ctl |= Fifoenable|Fifoerror;
 	}
 	intrclear(VBLANKbit, 0);
 }
@@ -215,11 +209,11 @@ static void
 vcountintr(void*)
 {
 	static int vcount = 0;
-	ulong bst, cbst, bup, bdown;
+	static ulong bst, cbst, bup, bdown;
 	static ulong obst = Btnmsk; /* initial button state */
 
 	/* don't send to many input events */
-	if(vcount++ % 8 == 0)
+	if(vcount++ % ((~bst&Btnmsk) ? 4 : 16) == 0)
 	{
 		/* check buttons state */
 		bst = KEYREG->in & Btn9msk;
@@ -236,6 +230,12 @@ vcountintr(void*)
 			nbfifoput(F7keydown, bdown);
 		if(bup)
 			nbfifoput(F7keyup, bup);
+
+		Wifi_Update();
+
+		/* clear FIFO errors */
+		if (FIFOREG->ctl & Fifoerror)
+			FIFOREG->ctl |= Fifoenable|Fifoerror;
 	}
 
 	intrclear(VCOUNTbit, 0);
