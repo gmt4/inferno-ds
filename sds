@@ -178,7 +178,8 @@ root
 	/usr/inferno
 	/usr/inferno/namespace		/os/ds/root/usr/inferno/namespace
 	/usr/inferno/keyring		/os/ds/root/usr/inferno/keyring
-	/usr/inferno/lib		/os/ds/root/usr/inferno/lib
+
+	/usr/inferno/lib			/os/ds/root/usr/inferno/lib
 	/usr/inferno/lib/plumbing	/os/ds/root/usr/inferno/lib/plumbing
 	/usr/inferno/lib/profile	/os/ds/root/usr/inferno/lib/profile
 	/usr/inferno/lib/wmsetup	/os/ds/root/usr/inferno/lib/wmsetup
