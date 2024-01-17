@@ -635,7 +635,7 @@ enum
 	Pdown	=	16,
 	Lclose	= 	17,
 	Maxbtns,
-	Btnmsk	=	0x1f,
+	Btnmsk	=	0x1ffff, // 1<<17-1
 
 	// relative to XKEYS (arm7 only)
 	Xbtn7	= 	0,
