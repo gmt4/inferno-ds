@@ -102,7 +102,6 @@ code
 	int panicreset = 0;
 	char *tkfont = "/fonts/lucidasans/unicode.6.font";
 	int	tkstylus = 1;
-
 	
 init
 	dsinit
@@ -178,6 +177,9 @@ root
 	/usr/inferno
 	/usr/inferno/namespace		/os/ds/root/usr/inferno/namespace
 	/usr/inferno/keyring		/os/ds/root/usr/inferno/keyring
+
+	/usr/inferno/dis			/os/ds/root/usr/inferno/dis
+	/usr/inferno/dis/dswifi		/os/ds/root/usr/inferno/dis/dswifi
 
 	/usr/inferno/lib			/os/ds/root/usr/inferno/lib
 	/usr/inferno/lib/plumbing	/os/ds/root/usr/inferno/lib/plumbing
