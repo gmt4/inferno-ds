@@ -31,8 +31,8 @@ fn wrne {
 fn wcon {
     wnec dbg 0
     wnec scan 1
-	#wnec channel 1
-    wnec essid $1
+    #wnec channel 1
+    wnec $*
     wnec scan 0
     wrnes
 }
@@ -50,30 +50,34 @@ fn wdhcp {
 fn wsetup {
     # helper to setup networking
 	if{! ftest -d /net/ether0/0}{
-		wbuttons $1
+		wbuttons ${quote $*}
 	}
 
 	wini
-    wcon $1
-	wrne
+    wcon $*
 	#wdhcp
 }
 
 fn wbuttons {
 	# setup wm/sh buttons
-	echo ${quote button wset 'run /usr/inferno/dis/dswifi wsetup '$1'
+	echo ${quote button wset 'run /usr/inferno/dis/dswifi wsetup '$*'
 '} > /chan/shctl
 	echo ${quote button wrne 'run /usr/inferno/dis/dswifi wrne
 '} > /chan/shctl
-	echo ${quote button dbg0 'run /usr/inferno/dis/dswifi wnec dbg 0
+	echo ${quote button wd0  'run /usr/inferno/dis/dswifi wnec dbg 0
 '} > /chan/shctl
-	echo ${quote button dbg1 'run /usr/inferno/dis/dswifi wnec dbg 1
+	echo ${quote button wd1  'run /usr/inferno/dis/dswifi wnec dbg 1
 '} > /chan/shctl
-	echo ${quote button scan0 'run /usr/inferno/dis/dswifi wnec scan 0
+	echo ${quote button ws0  'run /usr/inferno/dis/dswifi wnec scan 0
 '} > /chan/shctl
-	echo ${quote button scan1 'run /usr/inferno/dis/dswifi wnec scan 1
+	echo ${quote button ws1  'run /usr/inferno/dis/dswifi wnec scan 1
 '} > /chan/shctl
 	echo ${quote button dhcp 'run /usr/inferno/dis/dswifi wdhcp
+'} > /chan/shctl
+
+	echo ${quote button rtc  'cat /dev/rtc
+'} > /chan/shctl
+	echo ${quote button fw   'cat /dev/ndsfw
 '} > /chan/shctl
 }
 
