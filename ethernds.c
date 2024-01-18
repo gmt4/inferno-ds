@@ -807,9 +807,10 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 		debug[1], debug[2], debug[6], debug[3], debug[4]);
 
 	status = Wifi_AssocStatus();
-	p = seprint(p, e, "essid %s mode (0x%ux/0x%ux) auth 0x%ux status (0x%ux) %s\n",
-		WifiData->ssid9, WifiData->curMode, WifiData->reqMode, WifiData->authlevel,
-		status, ASSOCSTATUS_STRINGS[status]);	
+	p = seprint(p, e, "essid %s %x mode (0x%ux/0x%ux) auth 0x%ux status (0x%ux) %s\n",
+		WifiData->ssid9, WifiData->flags9,
+		WifiData->curMode, WifiData->reqMode,
+		WifiData->authlevel, status, ASSOCSTATUS_STRINGS[status]);
 
 	ap = WifiData->aplist;
 	// order by signal quality 
@@ -876,7 +877,7 @@ w_option(Ctlr* ctlr, char* buf, long n)
 					break;
 			}
 			if(i < j){
-				Wifi_ConnectAP(&WifiData->aplist[i], WEPMODE_NONE, ctlr->txkey, (u8*)ctlr->keys[ctlr->txkey].dat);
+				Wifi_ConnectAP(&WifiData->aplist[i], ctlr->crypt, ctlr->txkey, (u8*)ctlr->keys[ctlr->txkey].dat);
 				//while(Wifi_AssocStatus() != ASSOCSTATUS_ASSOCIATED);
 			}
 		}
