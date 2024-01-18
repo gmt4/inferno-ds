@@ -12,6 +12,7 @@ void	clockpoll(void);
 uint	cpsrr(void);
 void	dcflush(void*, ulong);
 void	dcflushall(void);
+void	dcinval(void*, ulong);
 void	dumplongs(char *, ulong *, int);
 void	dumpregs(Ureg* ureg);
 void	dumpstk(ulong *);
