@@ -808,7 +808,7 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 
 	status = Wifi_AssocStatus();
 	p = seprint(p, e, "essid %s %x mode (0x%ux/0x%ux) auth 0x%ux status (0x%ux) %s\n",
-		WifiData->ssid9, WifiData->flags9,
+		&WifiData->ssid9[1], WifiData->flags9,
 		WifiData->curMode, WifiData->reqMode,
 		WifiData->authlevel, status, ASSOCSTATUS_STRINGS[status]);
 
