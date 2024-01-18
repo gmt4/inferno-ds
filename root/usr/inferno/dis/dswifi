@@ -1,0 +1,88 @@
+#!/dis/sh.dis
+#
+# @file dswifi
+# @description dswifi, dswifi networking helper
+# @author gmt4 <gmt4 at github.com> (c) Copyright 2024. MIT
+# @url github.com/gmt4/inferno-ds
+#
+
+load std
+
+fn usage {
+	# usage: dis/dswifi cmd, or use: run dis/dswifi cmd
+	echo 'usage: dswifi wsetup essid'
+	raise $*
+}
+
+fn wrnes { cat /net/ether0/ifstats }
+fn wnec { echo -n $* > /net/ether0/0/ctl }
+fn wini {
+	if{! ftest -d /net/ether0/0}{
+		x=`{cat /net/ether0/clone}
+	}
+}
+
+fn wrne {
+    wnec dbg 0
+    wnec scan 0
+    wrnes
+}
+
+fn wcon {
+    wnec dbg 0
+    wnec scan 1
+	#wnec channel 1
+    wnec essid $1
+    wnec scan 0
+    wrnes
+}
+
+fn wdhcp {
+	if{! ftest -d /net/ipifc/0}{
+		x=`{cat /net/ipifc/clone}
+	} else {
+		x=0
+	}
+    echo bind ether /net/ether0 >/net/ipifc/$x/ctl &&
+		ip/dhcp /net/ipifc/$x
+}
+
+fn wsetup {
+    # helper to setup networking
+	if{! ftest -d /net/ether0/0}{
+		wbuttons $1
+	}
+
+	wini
+    wcon $1
+	wrne
+	#wdhcp
+}
+
+fn wbuttons {
+	# setup wm/sh buttons
+	echo ${quote button wset 'run /usr/inferno/dis/dswifi wsetup '$1'
+'} > /chan/shctl
+	echo ${quote button wrne 'run /usr/inferno/dis/dswifi wrne
+'} > /chan/shctl
+	echo ${quote button dbg0 'run /usr/inferno/dis/dswifi wnec dbg 0
+'} > /chan/shctl
+	echo ${quote button dbg1 'run /usr/inferno/dis/dswifi wnec dbg 1
+'} > /chan/shctl
+	echo ${quote button scan0 'run /usr/inferno/dis/dswifi wnec scan 0
+'} > /chan/shctl
+	echo ${quote button scan1 'run /usr/inferno/dis/dswifi wnec scan 1
+'} > /chan/shctl
+	echo ${quote button dhcp 'run /usr/inferno/dis/dswifi wdhcp
+'} > /chan/shctl
+}
+
+fn main {
+    if{~ $#* 0}{
+        usage 'no cmd'
+    }
+
+	$*
+}
+
+main $*
