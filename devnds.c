@@ -119,7 +119,7 @@ ndsinit(void)
 	dsh = nil;
 	/* look for a valid NDShdr */
 	if (memcmp((void*)((NDShdr*)ROMZERO)->gcode, "INFRME", 6) == 0)
-		dsh =  (NDShdr*)ROMZERO;
+		dsh = (NDShdr*)ROMZERO;
 	else if (memcmp((void*)NDSHeader->gcode, "INFRME", 6) == 0)
 		dsh = NDSHeader;
 
