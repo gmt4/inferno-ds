@@ -40,7 +40,7 @@ fn wcon {
 fn wdhcp {
 	if{! ftest -d /net/ipifc/0}{
 		x=`{cat /net/ipifc/clone}
-	} else {
+	}{
 		x=0
 	}
     echo bind ether /net/ether0 >/net/ipifc/$x/ctl &&
@@ -75,9 +75,9 @@ fn wbuttons {
 	echo ${quote button dhcp 'run /usr/inferno/dis/dswifi wdhcp
 '} > /chan/shctl
 
-	echo ${quote button rtc  'cat /dev/rtc
+	echo ${quote button r    'cat /dev/rtc
 '} > /chan/shctl
-	echo ${quote button fw   'cat /dev/ndsfw
+	echo ${quote button f    'cat /dev/ndsfw
 '} > /chan/shctl
 }
 
