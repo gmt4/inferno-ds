@@ -806,6 +806,14 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	p = seprint(p, e, "ie: 0x%ux if: 0x%ux ints: %ud tx: %ux/%ux\n",
 		debug[1], debug[2], debug[6], debug[3], debug[4]);
 
+	if(1)
+	p = seprint(p, e, "auto %d 1:%s 2:%s 3:%s\n",
+		WifiData->wfc_enable[0]&0x80,
+		WifiData->wfc_enable[0]&0x80 ? WifiData->wfc_ap[0].ssid : "",
+		WifiData->wfc_enable[0]&0x80 ? WifiData->wfc_ap[1].ssid : "",
+		WifiData->wfc_enable[0]&0x80 ? WifiData->wfc_ap[2].ssid : ""
+		);
+
 	status = Wifi_AssocStatus();
 	p = seprint(p, e, "essid %s %x mode (0x%ux/0x%ux) auth 0x%ux status (0x%ux) %s\n",
 		&WifiData->ssid9[1], WifiData->flags9,
