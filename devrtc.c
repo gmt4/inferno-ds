@@ -7,6 +7,8 @@
 
 #include	"io.h"
 
+#define	DPRINT if(0)iprint
+
 enum{
 	Qdir,
 	Qrtc,
@@ -17,11 +19,29 @@ static Dirtab rtctab[]={
 	"rtc",		{Qrtc},	NUMSIZE,	0664,
 };
 
-extern ulong boottime;
+static ulong
+sysrtc(void)
+{
+	ulong ret = 0;
+	ulong secs, *ps = uncached(&secs);
+	ulong osecs, *ops = uncached(&osecs);
+
+	*ops = 0x11223344;
+	ret |= nbfifoput(F9TSystem|F9Sysrrtc, (ulong)ops);
+	while(*ops == 0x11223344); /* wait for arm7 write */
+
+	*ps = 0x11223344;
+	ret |= nbfifoput(F9TSystem|F9Sysrrtc, (ulong)ps);
+	while(*ps == 0x11223344); /* wait for arm7 write */
+
+	DPRINT("sysrtc: ret %ud secs %ud < %ud\n", ret, secs, osecs);
+	return (secs >= osecs) ? secs : osecs;
+}
 
 static void
 rtcreset(void)
 {
+	DPRINT("devrtc: reset\n");
 }
 
 static Chan*
@@ -56,17 +76,14 @@ rtcclose(Chan*)
 static long	 
 rtcread(Chan *c, void *buf, long n, vlong off)
 {
-	ulong secs, *ps = uncached(&secs);
-
+	ulong secs;
 	if(c->qid.type & QTDIR)
 		return devdirread(c, buf, n, rtctab, nelem(rtctab), devgen);
 
 	switch((ulong)c->qid.path){
 	case Qrtc:
-		*ps = 1;
-		nbfifoput(F9TSystem|F9Sysrrtc, (ulong)ps);
-		while(*ps == 1); /* wait for arm7 write */
-		return readnum(off, buf, n, *ps, NUMSIZE);
+		secs = sysrtc();
+		return readnum(off, buf, n, secs, NUMSIZE);
 	}
 	error(Egreg);
 	return 0;		/* not reached */
