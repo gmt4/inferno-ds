@@ -1,6 +1,7 @@
 #!/dis/sh script
 load std
 
+wmrun bind -a '#r' /dev # rtc
 wmrun bind -a '#A' /dev # audio
 wmrun bind -b /icons/tinytk /icons/tk
 
@@ -14,11 +15,11 @@ wmrun wm/sh -w 250 -h 90 -ic '
 		#echo debug > /dev/audioctl
 		auplay /usr/inferno/lib/invhit.iaf
 		cat /dev/audio | read 16000 > /dev/audio
-    }
+	}
 	fn dswifi { run /usr/inferno/dis/dswifi $* }
 
 	date
 	echo Welcome to Inferno DS
 
-	dswifi wsetup default
+	dswifi wsetup essid default
 '
