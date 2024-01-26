@@ -223,10 +223,9 @@ archether(int ctlno, Ether *ether)
 	ether->nopt = tokenize(opt, (char **)ether->opt, nelem(ether->opt));
 	ether->mem = 0;
 	ether->port = 0;
-	ether->irq = IPCSYNCbit;
 	ether->itype = 0;
+	ether->irq = VBLANKbit;
 	ether->mbps = 2;
-	ether->maxmtu = ETHERMAXTU;
 
 	IPCREG->ctl |= Ipcirqena;
 	
