@@ -114,14 +114,23 @@ WifiSyncHandler synchandler = 0;
 #define Spinlock_Acquire(arg)	SPINLOCK_OK
 #define Spinlock_Release(arg)	// XXX
 
-void ethhdr_print(char f, void * d) {
-	Etherpkt *p = d;
+void ethhdr_print(char f, void * d)
+{
+	Etherpkt *p = d; /* p->data */
 	
 	DPRINT("%c:%x%x%x%x%x%x %x%x%x%x%x%x %x%x\n",
 		f,
 		p->d[0], p->d[1], p->d[2], p->d[3], p->d[4], p->d[5],
 		p->s[0], p->s[1], p->s[2], p->s[3], p->s[4], p->s[5],
 		p->type[0], p->type[1]);
+
+    if (0)
+    for (int i=0; i<=512; i++)
+    {
+        if (i % 64 == 0)
+            DPRINT("\n");
+        DPRINT("%x", p->data[i]);
+    }
 }
 
 static char*
@@ -982,24 +991,6 @@ promiscuous(void* arg, int on)
 }
 
 static void
-w_timer(void* arg)
-{
-	Ether* ether = (Ether*) arg;
-	Ctlr* ctlr = (Ctlr*)ether->ctlr;
-
-	for(;;){
-		tsleep(&ctlr->timer, return0, 0, 100);
-		if(ctlr == 0)
-			break;
-
-		ilock(ctlr);
-		Wifi_Update();
-		iunlock(ctlr);
-	}
-	pexit("terminated", 0);
-}
-
-static void
 attach(Ether *ether)
 {
 	Ctlr* ctlr;
@@ -1012,11 +1003,6 @@ attach(Ether *ether)
 	ctlr = (Ctlr*) ether->ctlr;
 	if (ctlr->attached == 0){
 		ctlr->attached = 1;
-		kproc("#l0timer", w_timer, ether, 0);
-	}else{
-//		if(!postnote(&ctlr->timer, 1, "kill", 0))
-//			print("timer note not posted\n");
-//		print("attach, killing 0x%p\n", ctlr->timer);
 	}
 }
 
@@ -1024,10 +1010,23 @@ static void
 txstart(Ether *ether)
 {
 	Ctlr *ctlr;
+	Etherpkt *pkt;
+	Block *bp;
 
 	ctlr = ether->ctlr;
+	if(ctlr->attached == 0)
+		return;
+
+	if((bp = qget(ether->oq)) == nil)
+		return;
+
+	DPRINT("txstart %d\n", BLEN(bp));
+	pkt = (Etherpkt*)bp->rp;
+	ethhdr_print('t', pkt);
+
 	if(ctlr->waiting != nil)	/* allocate pending; must wait for that */
 		return;
+
 	for(;;){
 		if((ctlr->waiting = qget(ether->oq)) == nil)
 			break;
@@ -1046,7 +1045,6 @@ transmit(Ether *ether)
 {
 	Ctlr *ctlr;
 
-	DPRINT("transmit\n");
 	ctlr = ether->ctlr;
 	ilock(ctlr);
 	txstart(ether);
@@ -1056,16 +1054,21 @@ transmit(Ether *ether)
 static void
 interrupt(Ureg*, void *arg)
 {
-	Ether *ether;
-	Ctlr *ctlr;
+	Ether* ether = (Ether*) arg;
+	Ctlr* ctlr = (Ctlr*)ether->ctlr;
+	static int vblank = 0;
 	
-	DPRINT("interrupt\n");
-	ether = arg;
-	ctlr = ether->ctlr;
-	if (ctlr == nil)
-		return;
+	if(vblank++ % 64 == 0)
+	{
+		//DPRINT("interrupt\n");
+		if(ctlr == 0)
+			return;
 
-	//Wifi_Update();
+		ilock(ctlr);
+		Wifi_Update();
+		iunlock(ctlr);
+	}
+	intrclear(ether->irq, 0);
 }
 
 /* set scanning interval */
