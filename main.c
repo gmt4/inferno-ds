@@ -33,7 +33,7 @@ segflush(void *a, ulong n)
 {
 	dcflush(a, n);
 	icflush(a, n);
-//	dcinval(a, n);
+	dcinval(a, n);
 	
 	return 0;
 }
